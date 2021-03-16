@@ -1,0 +1,123 @@
+"""
+
+Python SQL test
+
+
+"""
+
+import psycopg2
+
+
+def connect():
+	
+	conn = None
+
+	try:
+		conn = psycopg2.connect(
+			host     = "localhost",
+			database = "AAPC_test1",
+			user     = "postgres",
+			password = "Anders_SQL"
+			)
+		conn.autocommit = True
+	except (Exception, psycopg2.DatabaseError) as error:
+		print(error)
+
+	return conn
+
+def create_session(conn):
+	cur = conn.cursor()
+
+	s = "INSERT INTO runtime_session DEFAULT VALUES RETURNING rsid;"
+	cur.execute(s)
+	id = cur.fetchone()[0]
+	
+	print("Id",id)
+	
+	cur.close()
+	insert(conn, id, 0.0, 0.0, 0.0, 0.0) # Init session
+	return id
+
+def get_u(conn, id):
+	cur = conn.cursor()
+	
+	s = """
+		SELECT u
+		FROM Data
+		WHERE rsid = %s
+		ORDER BY time DESC
+		LIMIT 1
+	"""
+	cur.execute(s, [id,])
+	u = cur.fetchone()[0]
+	cur.close()
+
+	return u
+
+def get_states(conn, id):
+	cur = conn.cursor()
+	
+	s = """
+		SELECT x1, x2
+		FROM Data
+		WHERE rsid = %s
+		ORDER BY time DESC
+		LIMIT 1
+	"""
+	cur.execute(s, [id,])
+	row = cur.fetchone()
+	cur.close()
+
+	return (row[0], row[1])
+
+def insert(conn, id, time, x1, x2, u):
+	""" tag u-værdi fra sidste række 
+	lav ny række med nye x1 og x2 værdier og brug u fra rækken før
+	u = get_u()
+	r = [x1,x2,u]
+	append r to database.
+	"""
+	cur = conn.cursor()
+	#u = get_u(conn, id)
+	row = [id, time, x1, x2, u]
+
+	s = """
+		INSERT INTO Data("rsid","time","x1","x2","u")
+		VALUES(%s, %s, %s, %s, %s);
+	"""
+	cur.execute(s, row)
+	cur.close()
+
+
+def read(conn, id, nrow):
+	cur = conn.cursor()
+	
+	s = """
+		SELECT time, x1, x2, u
+		FROM Data
+		WHERE rsid = %s
+		ORDER BY time DESC
+		LIMIT %s
+	"""
+	cur.execute(s, [id, nrow])
+	result = cur.fetchall()
+	cur.close()
+
+	result.reverse()
+
+	return result
+
+def main():
+	conn = connect()
+	
+	id = create_session(conn)
+	u=get_u(conn, id)
+	print(u)
+	(x1, x2) = get_states(conn, id)
+
+	insert(conn, id, 0.012, 666.213, 666.123, u)
+	insert(conn, id, 0.012, 666.213, 666.123, u)
+	data = read(conn, id, 1)
+	print(data)
+if __name__ == '__main__':
+	main()
