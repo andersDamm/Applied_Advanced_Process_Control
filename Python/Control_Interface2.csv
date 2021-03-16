@@ -1,0 +1,15 @@
+﻿Control Interface,,,,
+,,,,
+cntr_sel:,ref:,,,
+1,2,,,
+cnt_det:,,,,
+u_min,u_max,Ts,,
+-4,4,5,,
+PID(1):,,,,
+,Kp,tau_i,tau_d,alpha
+,1,0.1,0,0
+LQR(2):,Q,,,R
+,1,0,0,21
+,0,1,0,
+,0,0,100,
+MPC(3):,,,,
