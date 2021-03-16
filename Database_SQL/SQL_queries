@@ -1,0 +1,67 @@
+// SQL queries for AAPC
+
+
+
+
+
+CREATE TABLE Runtime_session(
+	RSID SERIAL PRIMARY KEY,
+	Start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+CREATE TABLE Data(
+	RSID INT REFERENCES runtime_session(rsid),
+	TIME FLOAT,
+	x1 FLOAT,
+	x2 FLOAT,
+	u FLOAT
+);
+
+
+
+
+// SKAL STÅ I PYTHON
+
+INSERT INTO runtime_session DEFAULT VALUES RETURNING rsid;
+
+
+
+INSERT INTO Data("rsid","time","x1","x2","u")
+VALUES(1, 151.86813259124756,1.9938404,0.00036429,2.9704751021550813);
+
+
+
+
+SELECT *
+FROM runtime_session AS R, Data AS D
+WHERE R.rsid = D.rsid
+	AND R.rsid = 2
+
+
+
+SELECT u
+FROM Data
+WHERE rsid = id
+ORDER BY time DESC
+LIMIT 1
+
+SELECT x1, x2
+FROM Data
+WHERE rsid = 2
+ORDER BY time DESC
+LIMIT 1
+
+
+
+
+CREATE VIEW Resent_session AS
+SELECT *
+FROM data
+WHERE rsid = ( 
+	SELECT rsid
+	FROM runtime_session
+	ORDER BY rsid DESC
+	LIMIT 1
+)
